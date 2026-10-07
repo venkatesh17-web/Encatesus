@@ -8,8 +8,19 @@ from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-import database as db
-import gemini_service
+import sys
+
+# Ensure backend directory is in sys.path regardless of execution CWD
+_BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+if _BACKEND_DIR not in sys.path:
+    sys.path.insert(0, _BACKEND_DIR)
+
+try:
+    import database as db
+    import gemini_service
+except ImportError:
+    from backend import database as db
+    from backend import gemini_service
 
 app = FastAPI(
     title="Gemini AI Chat Backend",
