@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encatesus AI Chat</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            dark: {
+              950: '#0a0c10',
+              900: '#0e1015',
+              850: '#15171e',
+              800: '#1a1d26',
+              750: '#222632',
+              700: '#2b303e',
+              600: '#3f4659'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Marked.js for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Highlight.js for Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- PWA & Mobile Web App Meta -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0e1015">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Encatesus">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-dark-900 text-slate-100 flex h-screen overflow-hidden antialiased">
+
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-30 lg:hidden transition-opacity"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-72 flex flex-col bg-dark-850 border-r border-dark-700/60 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out">
+    
+    <!-- Sidebar Header & New Chat -->
+    <div class="p-3 pb-2 border-b border-dark-700/40 space-y-2.5">
+      <!-- App Brand Title -->
+      <div class="flex items-center justify-between px-2 pt-1">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+          </div>
+          <span class="font-bold text-base tracking-tight bg-gradient-to-r from-indigo-200 via-white to-indigo-300 bg-clip-text text-transparent">Encatesus AI</span>
+        </div>
+        <button id="close-sidebar-btn" class="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-dark-750 transition" title="Close sidebar">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- New Chat Button -->
+      <button id="new-chat-btn" class="w-full flex items-center justify-between px-3.5 py-2.5 bg-dark-800 hover:bg-dark-750 border border-dark-700/80 hover:border-indigo-500/50 rounded-xl text-slate-200 hover:text-white font-medium text-sm transition-all duration-150 shadow-sm group">
+        <div class="flex items-center space-x-2.5">
+          <i data-lucide="plus" class="w-4 h-4 text-indigo-400 group-hover:rotate-90 transition-transform duration-200"></i>
+          <span>New Chat</span>
+        </div>
+        <kbd class="hidden sm:inline-block text-[10px] font-mono bg-dark-900/80 text-slate-400 px-1.5 py-0.5 rounded border border-dark-700">Ctrl+N</kbd>
+      </button>
+
+      <!-- Search Conversations Input -->
+      <div class="relative">
+        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input id="search-input" type="text" placeholder="Search conversations..." class="w-full bg-dark-900/80 text-xs text-slate-200 placeholder-slate-500 pl-8 pr-7 py-2 rounded-lg border border-dark-700/50 focus:outline-none focus:border-indigo-500/70 transition">
+        <button id="clear-search-btn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-3 h-3"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Conversations History List -->
+    <div id="conversations-container" class="flex-1 overflow-y-auto px-2 py-2 space-y-4">
+      <!-- Dynamic list populated via JS: Today, Yesterday, Previous 7 Days, etc. -->
+    </div>
+
+    <!-- Sidebar Bottom Controls -->
+    <div class="p-3 border-t border-dark-700/60 bg-dark-850/90 space-y-1.5">
+      <!-- Clear History Button -->
+      <button id="clear-all-btn" class="w-full flex items-center space-x-2.5 px-3 py-2 text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition">
+        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+        <span>Clear all conversations</span>
+      </button>
+
+      <!-- Settings Button -->
+      <button id="settings-btn" class="w-full flex items-center justify-between px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-dark-750 rounded-lg transition">
+        <div class="flex items-center space-x-2.5">
+          <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
+          <span>Settings</span>
+        </div>
+        <span id="api-status-dot" class="w-2 h-2 rounded-full bg-amber-400" title="API Key Status"></span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Chat Area -->
+  <main class="flex-1 flex flex-col h-full bg-dark-900 min-w-0 relative">
+    
+    <!-- Top Header Navigation Bar -->
+    <header class="h-14 border-b border-dark-700/60 flex items-center justify-between px-4 bg-dark-900/80 backdrop-blur-md sticky top-0 z-20">
+      <!-- Left: Mobile Toggle & Chat Title -->
+      <div class="flex items-center space-x-3 min-w-0">
+        <button id="sidebar-toggle-btn" class="p-2 text-slate-400 hover:text-white hover:bg-dark-800 rounded-lg transition" title="Toggle sidebar">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        
+        <!-- Active Model Pill Dropdown Selector -->
+        <div class="relative">
+          <button id="header-model-dropdown-btn" class="flex items-center space-x-1.5 px-2.5 py-1.5 bg-dark-800 hover:bg-dark-750 border border-dark-700 rounded-lg text-xs font-medium text-slate-200 hover:text-white transition">
+            <i data-lucide="cpu" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span id="header-model-name">Gemini 3.5 Flash Lite</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div id="header-model-menu" class="hidden absolute top-full mt-1.5 left-0 w-56 bg-dark-800 border border-dark-700 rounded-xl shadow-2xl py-1 z-30">
+            <button class="model-option w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-dark-750 transition" data-model="gemini-3.5-flash-lite">
+              <div>
+                <div class="font-medium text-slate-200">Gemini 3.5 Flash Lite</div>
+                <div class="text-[10px] text-slate-400">Blazing fast, ultra-low latency</div>
+              </div>
+              <i data-lucide="check" class="w-3.5 h-3.5 text-indigo-400 hidden check-icon"></i>
+            </button>
+            <button class="model-option w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-dark-750 transition" data-model="gemini-flash-lite-latest">
+              <div>
+                <div class="font-medium text-slate-200">Gemini Flash Lite (Latest)</div>
+                <div class="text-[10px] text-slate-400">Fast multimodal model</div>
+              </div>
+              <i data-lucide="check" class="w-3.5 h-3.5 text-indigo-400 hidden check-icon"></i>
+            </button>
+            <button class="model-option w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-dark-750 transition" data-model="gemini-3.8-flash">
+              <div>
+                <div class="font-medium text-slate-200">Gemini 3.8 Flash</div>
+                <div class="text-[10px] text-slate-400">High performance, deep reasoning</div>
+              </div>
+              <i data-lucide="check" class="w-3.5 h-3.5 text-indigo-400 hidden check-icon"></i>
+            </button>
+            <button class="model-option w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-dark-750 transition" data-model="gemini-3.5-flash">
+              <div>
+                <div class="font-medium text-slate-200">Gemini 3.5 Flash</div>
+                <div class="text-[10px] text-slate-400">Balanced versatile model</div>
+              </div>
+              <i data-lucide="check" class="w-3.5 h-3.5 text-indigo-400 hidden check-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <h1 id="current-chat-title" class="hidden sm:block text-xs font-medium text-slate-400 truncate max-w-[200px] md:max-w-xs border-l border-dark-700 pl-3">
+          New Conversation
+        </h1>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center space-x-2">
+        <button id="quick-new-chat-btn" class="p-2 text-slate-400 hover:text-white hover:bg-dark-800 rounded-lg transition" title="Start new chat">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+        </button>
+        <button id="header-settings-btn" class="p-2 text-slate-400 hover:text-white hover:bg-dark-800 rounded-lg transition" title="Open settings">
+          <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scrollable Messages Container Area -->
+    <div id="chat-messages-container" class="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      
+      <!-- Welcome Empty State -->
+      <div id="welcome-state" class="max-w-3xl mx-auto h-full flex flex-col justify-center items-center text-center px-4 py-8">
+        <div class="w-16 h-16 rounded-2xl gemini-gradient-bg flex items-center justify-center mb-6 shadow-xl shadow-indigo-500/25 ring-8 ring-indigo-500/10">
+          <i data-lucide="sparkles" class="w-8 h-8 text-white"></i>
+        </div>
+        
+        <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-white mb-2">
+          How can I help you today?
+        </h2>
+        <p class="text-sm text-slate-400 max-w-md mb-8">
+          Ask questions, brainstorm ideas, write or debug code, or explore complex topics with real-time AI responses.
+        </p>
+
+        <!-- 4 Quick Starter Prompt Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl text-left">
+          <button class="starter-prompt-card p-4 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700/80 hover:border-indigo-500/40 transition duration-150 group text-left flex flex-col justify-between" data-prompt="Explain quantum computing in simple terms with an analogy.">
+            <div class="flex items-center space-x-2.5 text-indigo-400 mb-2">
+              <i data-lucide="atom" class="w-4 h-4"></i>
+              <span class="text-xs font-semibold text-slate-200 group-hover:text-white">Explain quantum computing</span>
+            </div>
+            <p class="text-xs text-slate-400">Simple explanation using an intuitive real-world analogy</p>
+          </button>
+
+          <button class="starter-prompt-card p-4 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700/80 hover:border-indigo-500/40 transition duration-150 group text-left flex flex-col justify-between" data-prompt="Write a Python script using BeautifulSoup to scrape and parse web page data cleanly.">
+            <div class="flex items-center space-x-2.5 text-emerald-400 mb-2">
+              <i data-lucide="code-2" class="w-4 h-4"></i>
+              <span class="text-xs font-semibold text-slate-200 group-hover:text-white">Write a Python script</span>
+            </div>
+            <p class="text-xs text-slate-400">Web scraping utility with error handling and comments</p>
+          </button>
+
+          <button class="starter-prompt-card p-4 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700/80 hover:border-indigo-500/40 transition duration-150 group text-left flex flex-col justify-between" data-prompt="Help me debug an asynchronous JavaScript issue where Promise.all is failing silently.">
+            <div class="flex items-center space-x-2.5 text-amber-400 mb-2">
+              <i data-lucide="bug" class="w-4 h-4"></i>
+              <span class="text-xs font-semibold text-slate-200 group-hover:text-white">Debug code issue</span>
+            </div>
+            <p class="text-xs text-slate-400">Find and resolve async promise rejection bugs</p>
+          </button>
+
+          <button class="starter-prompt-card p-4 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700/80 hover:border-indigo-500/40 transition duration-150 group text-left flex flex-col justify-between" data-prompt="Give me 5 creative, high-impact marketing strategies for launching an AI developer tool.">
+            <div class="flex items-center space-x-2.5 text-pink-400 mb-2">
+              <i data-lucide="lightbulb" class="w-4 h-4"></i>
+              <span class="text-xs font-semibold text-slate-200 group-hover:text-white">Brainstorm strategies</span>
+            </div>
+            <p class="text-xs text-slate-400">Creative marketing campaign angles for developer tools</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Stream Wrapper -->
+      <div id="messages-list" class="max-w-3xl mx-auto space-y-6 hidden">
+        <!-- Dynamically injected message rows -->
+      </div>
+    </div>
+
+    <!-- Fixed Bottom Prompt Input Bar -->
+    <div class="p-4 sm:p-6 bg-gradient-to-t from-dark-900 via-dark-900 to-transparent sticky bottom-0 z-10">
+      <div class="max-w-3xl mx-auto">
+        <!-- Input Box Container -->
+        <div class="relative bg-dark-800 border border-dark-700 rounded-2xl shadow-xl focus-within:border-indigo-500/80 focus-within:ring-1 focus-within:ring-indigo-500/40 transition duration-150">
+          <form id="chat-form" class="flex items-end p-2.5 gap-2">
+            <!-- Textarea -->
+            <textarea
+              id="prompt-input"
+              rows="1"
+              placeholder="Message Encatesus..."
+              class="w-full bg-transparent text-slate-100 placeholder-slate-500 text-sm px-3 py-1.5 focus:outline-none resize-none leading-relaxed"
+            ></textarea>
+            
+            <!-- Send / Stop Button -->
+            <button
+              id="send-btn"
+              type="submit"
+              class="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:hover:bg-indigo-600 disabled:cursor-not-allowed transition flex items-center justify-center shadow-md shadow-indigo-600/30 flex-shrink-0"
+              title="Send message (Enter)"
+            >
+              <i id="send-icon" data-lucide="arrow-up" class="w-4 h-4"></i>
+              <i id="stop-icon" data-lucide="square" class="w-4 h-4 hidden text-white fill-current"></i>
+            </button>
+          </form>
+        </div>
+
+        <!-- Disclaimer & Helper Info -->
+        <div class="flex items-center justify-between text-[11px] text-slate-500 px-3 mt-2">
+          <span>Encatesus can make mistakes. Verify important information.</span>
+          <span class="hidden sm:inline">Shift+Enter for new line</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="modal-content w-full max-w-md bg-dark-850 border border-dark-700 rounded-2xl shadow-2xl p-6 space-y-5">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-dark-700 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i>
+          <h3 class="text-base font-semibold text-white">Application Settings</h3>
+        </div>
+        <button id="close-settings-modal-btn" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Settings Body -->
+      <div class="space-y-4 text-xs">
+        <!-- API Key Input -->
+        <div class="space-y-1.5">
+          <label class="font-medium text-slate-300 flex justify-between">
+            <span>Gemini API Key</span>
+            <span class="text-[10px] text-indigo-400 hover:underline cursor-pointer" id="api-key-help-link">Get key at aistudio.google.com</span>
+          </label>
+          <div class="relative">
+            <input
+              id="api-key-input"
+              type="password"
+              placeholder="AIzaSy..."
+              class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3 py-2 pr-9 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono text-xs"
+            >
+            <button id="toggle-key-visibility-btn" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-500">Your API key is securely saved only in your browser's local storage.</p>
+        </div>
+
+        <!-- Default Model Selection -->
+        <div class="space-y-1.5">
+          <label class="font-medium text-slate-300">Default Model</label>
+          <select id="default-model-select" class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500 text-xs">
+            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Recommended - Ultra Fast)</option>
+            <option value="gemini-flash-lite-latest">Gemini Flash Lite (Latest)</option>
+            <option value="gemini-3.8-flash">Gemini 3.8 Flash (Deep Reasoning)</option>
+            <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+          </select>
+        </div>
+
+        <!-- System Instructions -->
+        <div class="space-y-1.5">
+          <label class="font-medium text-slate-300">Custom System Instructions (Optional)</label>
+          <textarea
+            id="system-prompt-input"
+            rows="3"
+            placeholder="e.g. You are an expert senior full-stack developer. Provide concise, clean, tested code..."
+            class="w-full bg-dark-900 border border-dark-700 rounded-xl p-2.5 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 text-xs resize-none"
+          ></textarea>
+        </div>
+
+        <!-- Temperature Slider -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center text-slate-300">
+            <label class="font-medium">Creativity / Temperature</label>
+            <span id="temp-value" class="font-mono text-indigo-400">0.7</span>
+          </div>
+          <input
+            id="temp-slider"
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value="0.7"
+            class="w-full accent-indigo-500 cursor-pointer"
+          >
+          <div class="flex justify-between text-[10px] text-slate-500">
+            <span>Precise (0.0)</span>
+            <span>Balanced (0.7)</span>
+            <span>Creative (1.0)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-end space-x-2 pt-3 border-t border-dark-700">
+        <button id="cancel-settings-btn" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-xl hover:bg-dark-750 transition">
+          Cancel
+        </button>
+        <button id="save-settings-btn" class="px-4 py-2 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/30 transition">
+          Save Preferences
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div id="confirm-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="modal-content w-full max-w-sm bg-dark-850 border border-dark-700 rounded-2xl shadow-2xl p-5 space-y-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 flex-shrink-0">
+          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-white" id="confirm-modal-title">Delete Conversation</h4>
+          <p class="text-xs text-slate-400 mt-0.5" id="confirm-modal-desc">Are you sure you want to delete this conversation? This action cannot be undone.</p>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button id="confirm-cancel-btn" class="px-3.5 py-1.5 text-xs text-slate-300 hover:text-white rounded-lg hover:bg-dark-750 transition">Cancel</button>
+        <button id="confirm-action-btn" class="px-3.5 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Main JavaScript App Logic -->
+  <script src="js/app.js"></script>
+
+  <!-- Service Worker Registration for PWA / Mobile Install -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('Encatesus Service Worker active:', reg.scope))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>

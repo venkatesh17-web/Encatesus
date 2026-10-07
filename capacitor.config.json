@@ -1,0 +1,9 @@
+{
+  "appId": "com.encatesus.ai",
+  "appName": "Encatesus AI",
+  "webDir": "frontend",
+  "bundledWebRuntime": false,
+  "server": {
+    "cleartext": true
+  }
+}
