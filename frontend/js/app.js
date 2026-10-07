@@ -535,9 +535,7 @@
       const modelLabel = message.model ? MODEL_NAMES[message.model] || message.model : MODEL_NAMES[state.settings.selectedModel];
 
       row.innerHTML = `
-        <div class="w-7 h-7 rounded-lg gemini-gradient-bg flex items-center justify-center flex-shrink-0 text-white shadow-md shadow-indigo-500/25 mt-0.5">
-          <i data-lucide="sparkles" class="w-4 h-4"></i>
-        </div>
+        <img src="assets/logo.png" alt="Encatesus" class="w-7 h-7 rounded-lg object-contain shadow-md shadow-indigo-500/25 mt-0.5 border border-indigo-500/30">
         <div class="flex-1 min-w-0 space-y-2">
           <div class="flex items-center justify-between text-[11px] text-slate-400">
             <span class="font-medium text-indigo-300 flex items-center gap-1.5">
@@ -622,9 +620,7 @@
     assistantRow.className = 'flex gap-3 sm:gap-4 p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 mr-auto w-full';
     assistantRow.dataset.messageIndex = assistantIndex;
     assistantRow.innerHTML = `
-      <div class="w-7 h-7 rounded-lg gemini-gradient-bg flex items-center justify-center flex-shrink-0 text-white shadow-md shadow-indigo-500/25 mt-0.5">
-        <i data-lucide="sparkles" class="w-4 h-4"></i>
-      </div>
+      <img src="assets/logo.png" alt="Encatesus" class="w-7 h-7 rounded-lg object-contain shadow-md shadow-indigo-500/25 mt-0.5 border border-indigo-500/30">
       <div class="flex-1 min-w-0 space-y-2">
         <div class="flex items-center justify-between text-[11px] text-slate-400">
           <span class="font-medium text-indigo-300 flex items-center gap-1.5">

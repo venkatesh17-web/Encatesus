@@ -53,6 +53,10 @@
   <meta name="apple-mobile-web-app-title" content="Encatesus">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/favicon.png">
+
   <!-- Custom Styles -->
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -69,10 +73,8 @@
       <!-- App Brand Title -->
       <div class="flex items-center justify-between px-2 pt-1">
         <div class="flex items-center space-x-2.5">
-          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
-          </div>
-          <span class="font-bold text-base tracking-tight bg-gradient-to-r from-indigo-200 via-white to-indigo-300 bg-clip-text text-transparent">Encatesus AI</span>
+          <img src="assets/logo.png" alt="Encatesus Logo" class="w-8 h-8 rounded-lg object-contain shadow-lg shadow-indigo-500/20 border border-indigo-500/30">
+          <span class="font-bold text-base tracking-tight bg-gradient-to-r from-indigo-200 via-white to-indigo-300 bg-clip-text text-transparent">Encatesus</span>
         </div>
         <button id="close-sidebar-btn" class="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-dark-750 transition" title="Close sidebar">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -195,12 +197,13 @@
       
       <!-- Welcome Empty State -->
       <div id="welcome-state" class="max-w-3xl mx-auto h-full flex flex-col justify-center items-center text-center px-4 py-8">
-        <div class="w-16 h-16 rounded-2xl gemini-gradient-bg flex items-center justify-center mb-6 shadow-xl shadow-indigo-500/25 ring-8 ring-indigo-500/10">
-          <i data-lucide="sparkles" class="w-8 h-8 text-white"></i>
+        <div class="relative mb-6 group">
+          <div class="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 opacity-70 blur-lg group-hover:opacity-100 transition duration-300"></div>
+          <img src="assets/logo.png" alt="Encatesus Logo" class="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shadow-2xl border border-indigo-500/40">
         </div>
         
         <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-white mb-2">
-          How can I help you today?
+          How can Encatesus help you today?
         </h2>
         <p class="text-sm text-slate-400 max-w-md mb-8">
           Ask questions, brainstorm ideas, write or debug code, or explore complex topics with real-time AI responses.
